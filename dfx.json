@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "backend": {
+      "main": "Backend/main.mo",
+      "type": "motoko"
+    },
+    "internet_identity" : {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    },
+    "LoginWeb": {
+      "dependencies": [],
+      "frontend": {
+        "entrypoint": "LoginWeb/src/index.html"
+      },
+      "source": [
+        "LoginWeb/assets",
+        "dist/LoginWeb/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

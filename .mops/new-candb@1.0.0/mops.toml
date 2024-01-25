@@ -1,0 +1,17 @@
+[dependencies]
+base = "https://github.com/dfinity/motoko-base#494824a2787aee24ab4a5888aa519deb05ecfd60@494824a2787aee24ab4a5888aa519deb05ecfd60"
+stable-hash-map = "https://github.com/canscale/StableHashMap#v0.2.1@00243abd9541cbfb69c39647ec2475df6ab893f6"
+stable-rbtree = "https://github.com/canscale/StableRBTree#v0.6.0@f896e8b3b2231ebd8841f447ddf2e058dd254839"
+stable-buffer = "https://github.com/canscale/StableBuffer#v0.2.0@1af0e8814bac5ca7ed23a6c094204b46d9056c2e"
+json = "https://github.com/aviate-labs/json.mo#v0.1.1@bc8afdda8a2011d0a3ecea079b85e587237550b7"
+crypto = "https://github.com/aviate-labs/crypto.mo#v0.2.0@757b3268db10f85cd9f8a4e2f8f415c7860ed556"
+array = "https://github.com/aviate-labs/array.mo#v0.2.0@863a668bcbb3c3799a62c36b2cba2c32d1fcc433"
+encoding = "https://github.com/aviate-labs/encoding.mo#v0.3.2@8e0fe1d8f5c2d284e77d719703c42e0e271839b1"
+
+[package]
+name = "new-candb"
+version = "1.0.0"
+description = "traditional way of autoscaling option is there"
+repository = "https://github.com/ORIGYN-SA/CanDB/tree/main"
+keywords = [ "new-candb", "candb-new", "candbNew", "candb", "CanDb" ]
+license = "MIT"

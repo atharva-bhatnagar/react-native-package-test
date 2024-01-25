@@ -1,0 +1,17 @@
+[dependencies]
+base = "https://github.com/dfinity/motoko-base#494824a2787aee24ab4a5888aa519deb05ecfd60@494824a2787aee24ab4a5888aa519deb05ecfd60"
+
+[package]
+name = "stablehashmap"
+version = "1.0.0"
+description = "Mops package for StableHashMap"
+repository = "https://github.com/canscale/StableHashMap"
+keywords = [
+  "hashmap",
+  "hashMaps",
+  "stable",
+  "stablehashmap",
+  "stablehashmaps",
+  "stablehashMap"
+]
+license = "MIT"
