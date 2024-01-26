@@ -107,6 +107,9 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    // implementation "com.facebook.react:react-native:0.72.7"
+    // implementation 'org.devio.rn.splashscreen:splashscreen:1.1.0'
+
     // implementation('com.google.firebase:firebase-core:9.6.1')
     // implementation('com.google.firebase:firebase-analytics:22.0.0') 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
@@ -121,3 +124,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+// apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle");
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+// applyNativeModulesAppBuildGradle(project)
