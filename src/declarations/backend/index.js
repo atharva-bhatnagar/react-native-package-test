@@ -9,7 +9,7 @@ export { idlFactory } from "./backend.did.js";
  * process.env.CANISTER_ID_<CANISTER_NAME_UPPERCASE>
  * beginning in dfx 0.15.0
  */
-export const canisterId ="aovwi-4maaa-aaaaa-qaagq-cai"
+export const canisterId ="bd3sg-teaaa-aaaaa-qaaba-cai"
   // process.env.CANISTER_ID_BACKEND ||
   // process.env.BACKEND_CANISTER_ID;
 

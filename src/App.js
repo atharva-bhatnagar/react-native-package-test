@@ -1,21 +1,24 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useContext, useEffect } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import { useRoute } from '@react-navigation/native'
+import { UserContext } from '../index'
 
 const App = () => {
 
   const route=useRoute()
   const {handleLogin}=route.params
-  const {user}=route.params
+  // const {user}=route.params
+  const user =useContext(UserContext)
   useEffect(()=>{
     SplashScreen.hide()
   },[])
 
+
   return (
     <View style={styles.app}>
       <Text style={styles.text}>React native login Test</Text>
-      <Text style={styles.normalText}>Principal : {user}</Text>
+      <Text style={styles.normalText}>Principal : {"\n\n"+user}</Text>
       <TouchableOpacity style={styles.btn} onPress={handleLogin}>
         <Text style={styles.btnText}>Login</Text>
       </TouchableOpacity>
@@ -57,12 +60,15 @@ const styles = StyleSheet.create({
         marginBottom:30,
         fontSize:28,
         fontWeight:'bold',
-        color:'black'
+        color:'black',
+        
     },
     normalText:{
       marginBottom:30,
         fontSize:16,
         fontWeight:'bold',
-        color:'black'
+        color:'black',
+        maxWidth:'70%',
+        textAlign:'center'
     }
 })

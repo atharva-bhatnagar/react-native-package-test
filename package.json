@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@dfinity/agent": "^0.20.2",
+    "@dfinity/agent": "^0.18.1",
     "@dfinity/auth-client": "^0.20.2",
     "@dfinity/candid": "^0.20.1",
     "@dfinity/identity": "^0.20.2",

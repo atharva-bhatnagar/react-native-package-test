@@ -4,9 +4,9 @@
 import 'react-native-polyfill-globals/auto';
 import 'react-native-fetch-api';
 import 'fast-text-encoding';
-import {AppRegistry} from 'react-native';
+import {AppRegistry, useColorScheme} from 'react-native';
 import {name as appName} from './app.json';
-import React, { useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import PolyfillCrypto from 'react-native-webview-crypto';
 import {
   DelegationIdentity,
@@ -28,19 +28,24 @@ const Stack = createNativeStackNavigator();
 const linking = {
   prefixes: ['rentspace://'],
 };
+export const UserContext=createContext(null)
 
 const RootComponent: React.FC = () => {
 
-  const [user,setUser]=useState("Not logged in")
+  // const {user,setUser}=useContext(UserContext)
+  
+  const [user,setUser]=useState("Not logged in yet!")
+
   let generatedKeyPair;
 
   const handleLogin = async () => {
-    let keyPair = Ed25519KeyIdentity.generate();
-    generatedKeyPair = keyPair;
-    console.log('running handle login', keyPair);
+    await ECDSAKeyIdentity.generate({extractable: true}).then(async(keyp)=>{
+
+    generatedKeyPair=keyp
+    console.log('running handle login', keyp);
     try {
-      const url = `http://127.0.0.1:4943/?canisterId=ajuq4-ruaaa-aaaaa-qaaga-cai&publicKey=${toHex(
-        keyPair.getPublicKey().toDer(),
+      const url = `http://127.0.0.1:4943/?canisterId=bkyz2-fmaaa-aaaaa-qaaaq-cai&publicKey=${toHex(
+        keyp.getPublicKey().toDer(),
       )}`;
       if (await InAppBrowser.isAvailable()) {
         const result = await InAppBrowser.open(url, {
@@ -79,20 +84,27 @@ const RootComponent: React.FC = () => {
     } catch (error) {
       console.log(error);
     }
+  }).catch((err)=>{
+    console.log(err)
+  })
+    
   };
 
   const handleDeepLink = async event => {
-    let actor = backend;
+    // let actor = backend;
     const deepLink = event.url;
     const urlObject = new URL(deepLink);
     const delegation = urlObject.searchParams.get('delegation');
+    console.log("del",delegation)
     const chain = DelegationChain.fromJSON(
       JSON.parse(decodeURIComponent(delegation)),
     );
+    console.log("chain",chain)
     const middleIdentity = DelegationIdentity.fromDelegation(
       generatedKeyPair,
       chain,
     );
+    console.log("midid",middleIdentity)
 
     const agent = new HttpAgent({
       identity: middleIdentity,
@@ -109,22 +121,28 @@ const RootComponent: React.FC = () => {
       blsVerify: () => true,
       host: 'http://127.0.0.1:4943',
     });
-
-    actor = createActor('aovwi-4maaa-aaaaa-qaagq-cai', {
+    console.log("agent",agent)
+    let actor = createActor('bd3sg-teaaa-aaaaa-qaaba-cai', {
       agent,
     });
+    console.log("actor",actor.whoami)
 
-    let whoami = await actor.whoami();
-    setUser(whoami)
-    console.log('whoami', whoami);
+    await actor.whoami().then((u)=>{
+      console.log(u)
+      setUser(u)
+      console.log('whoami', u);
+    }).catch((err)=>{
+      console.log(err)
+    });
+    
   };
 
   return (
-    <>
+    <UserContext.Provider value={user}>
       <PolyfillCrypto />
       <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName='Launch'>
-          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin,user}}/>
+          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin}}/>
         </Stack.Navigator>
       </NavigationContainer>
       {/* <TouchableOpacity
@@ -134,7 +152,7 @@ const RootComponent: React.FC = () => {
         }}>
         <Text style={styles.loginBtnText}>Login with internet identity</Text>
       </TouchableOpacity> */}
-    </>
+    </UserContext.Provider>
   );
 };
 
