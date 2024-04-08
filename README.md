@@ -1,5 +1,7 @@
 # React native package test
 
+### perform package changes after running npm i or npm i --force given in [this doc](https://docs.google.com/document/d/14rPY-kNuBXau5fNxSXXpfaHrMNZSGqY9okc3Z8WDLu4/edit?usp=sharing). 
+
 ### for canister deployment -->
 
 1. run mops i
