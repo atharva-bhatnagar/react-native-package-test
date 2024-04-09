@@ -3,13 +3,14 @@ import React, { useContext, useEffect } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import { useRoute } from '@react-navigation/native'
 import { UserContext } from '../index'
+import RNRestart from 'react-native-restart/src'
 
 const App = () => {
 
   const route=useRoute()
   const {handleLogin}=route.params
   // const {user}=route.params
-  const user =useContext(UserContext)
+  const {user,setUser} =useContext(UserContext)
   useEffect(()=>{
     SplashScreen.hide()
   },[])
@@ -19,9 +20,12 @@ const App = () => {
     <View style={styles.app}>
       <Text style={styles.text}>React native login Test</Text>
       <Text style={styles.normalText}>Principal : {"\n\n"+user}</Text>
-      <TouchableOpacity style={styles.btn} onPress={handleLogin}>
+      <TouchableOpacity style={styles.btn} onPress={()=>{handleLogin(setUser)}}>
         <Text style={styles.btnText}>Login</Text>
       </TouchableOpacity>
+      {/* <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={()=>{RNRestart?.restart()}}>
+        <Text style={styles.btnText}>Logout</Text>
+      </TouchableOpacity> */}
     </View>
   )
 }
