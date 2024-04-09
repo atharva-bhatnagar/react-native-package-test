@@ -9,7 +9,6 @@ const App = () => {
 
   const route=useRoute()
   const {handleLogin}=route.params
-  // const {user}=route.params
   const {user,setUser} =useContext(UserContext)
   useEffect(()=>{
     SplashScreen.hide()
