@@ -3,21 +3,26 @@ import {
     ECDSAKeyIdentity,
     DelegationChain,
   } from '@dfinity/identity';
-import {Actor, HttpAgent, toHex, fromHex} from '@dfinity/agent';
+import {Actor, HttpAgent, toHex, fromHex, blsVerify} from '@dfinity/agent';
 import {InAppBrowser} from 'react-native-inappbrowser-reborn';
-import {createActor,backend} from './declarations/backend';
 import { Linking } from 'react-native';
 import { errors } from './types/errors';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+global.Buffer = require('buffer').Buffer;
 
 let generatedKeyPair
 
-export const handleLogin = async (setUser) => {
+
+export async function handleLogin(testing,idlFactories,canisterIDs){
+  return new Promise(async(resolve,reject)=>{
+    let baseURL=testing?"http://127.0.0.1:4943/?canisterId=bkyz2-fmaaa-aaaaa-qaaaq-cai&":"https://sldpd-dyaaa-aaaag-acifq-cai.icp0.io?"
+    let host=testing?"http://127.0.0.1:4943":"https://icp-api.io"
     await ECDSAKeyIdentity.generate({extractable: true}).then(async(keyp)=>{
 
     generatedKeyPair=keyp
     console.log('running handle login', keyp);
     try {
-      const url = `http://127.0.0.1:4943/?canisterId=bkyz2-fmaaa-aaaaa-qaaaq-cai&publicKey=${toHex(
+      const url = `${baseURL}publicKey=${toHex(
         keyp.getPublicKey().toDer(),
       )}`;
       if (await InAppBrowser.isAvailable()) {
@@ -51,21 +56,30 @@ export const handleLogin = async (setUser) => {
             'my-custom-header': 'my custom header value',
           },
         });
-        Linking.addEventListener('url', (event)=>handleDeepLink(event,setUser));
+        Linking.addEventListener('url', async(event)=>{
+          try{
+            let newRes=await handleDeepLink(event,idlFactories,canisterIDs)
+            resolve(newRes)
+          }catch(err){
+            reject(err)
+          }
+          
+          
+        });
         await this.sleep(800);
       } else Linking.openURL(url);
     } catch (error) {
       console.log(error);
-      new Error(errors.deeplinkErr)
+      // reject(errors.deeplinkErr)
     }
   }).catch((err)=>{
-    console.log(err)
-    new Error(errors.keygenerationErr)
+    reject(errors.keygenerationErr)
   })
+})
     
   };
 
-  const handleDeepLink = async (event,setUser) => {
+  async function handleDeepLink(event,idlFactories,canisterIDs){
     try{
         const deepLink = event.url;
         const urlObject = new URL(deepLink);
@@ -81,7 +95,7 @@ export const handleLogin = async (setUser) => {
         chain,
         );
         console.log("midid",middleIdentity)
-
+        
         const agent = new HttpAgent({
         identity: middleIdentity,
         fetchOptions: {
@@ -97,27 +111,60 @@ export const handleLogin = async (setUser) => {
         blsVerify: () => true,
         host: 'http://127.0.0.1:4943',
         });
+        // let pubKey = toHex(await crypto.subtle.exportKey("pkcs8",middleIdentity._inner._keyPair.publicKey));
+        // let priKey = toHex(await crypto.subtle.exportKey("pkcs8",middleIdentity._inner._keyPair.privateKey));
         console.log("agent",agent)
-        let actor = createActor('bd3sg-teaaa-aaaaa-qaaba-cai', {
-        agent,
+        let actor = Actor.createActor(idlFactories[0],{
+          agent,
+          blsVerify:()=>true,
+          canisterId:canisterIDs[0]
         });
         console.log("actor",actor.whoami)
+        let actorArr=[]
+        for(let i=1;i<idlFactories.length;i++){
+          let new_actor = Actor.createActor(idlFactories[i],{
+            agent,
+            blsVerify:()=>true,
+            canisterId:canisterIDs[i]
+          });
+          actorArr.push(new_actor)
+        }
 
-        await actor.whoami().then((u)=>{
-            console.log(u)
-            setUser(u)
-            console.log('whoami', u);
-        }).catch((err)=>{
-            console.log(err)
-            new Error(errors.actorCallingErr)
-        });
+        let principle=await actor.whoami()
+        return {
+          principle:principle,
+          actors:[actor,...actorArr]
+        }
+        // storeInAsyncStorage("pubkey",pubKey)
+        // storeInAsyncStorage("prikey",priKey)
+        // storeInAsyncStorage("delegation",delegation)
+        // return("successful")
     }catch(err){
-        new Error(errors.agentCreationErr)
+        console.log(err)
+        return err
     }
     
   };
 
-  async function delegationValidation(pubKey,priKey,delegation){
+  async function storeInAsyncStorage(key,item){
+    await AsyncStorage.setItem(key,item).catch((err)=>{
+      console.log(`Asyncstorage err set ietm : ${err}`)
+    }).then((res)=>{
+      console.log(`Response for setitem Async store : ${res}`)
+    })
+ }
+ async function getFromAsyncStore(key){
+    let data;
+    await AsyncStorage.getItem(key).then((res)=>{
+      data=res
+      console.log(`Async store get item res : ${res}`)
+    }).catch((err)=>{
+      console.log(`Async store get item err : ${err}`)
+    })
+    return data
+ }
+
+  async function delegationValidation(pubKey,priKey,delegation,setUser){
     try{
       let publicKey = await crypto.subtle.importKey(
         "raw",
@@ -144,76 +191,47 @@ export const handleLogin = async (setUser) => {
           Delchain,
         );
         console.log("middleIdentity",middleIdentity);
-        const agent = new HttpAgent({identity: middleIdentity,fetchOptions: {
-          reactNative: {
-            __nativeResponseType: 'base64',
+        const agent = new HttpAgent({
+          identity: middleIdentity,
+          fetchOptions: {
+              reactNative: {
+              __nativeResponseType: 'base64',
+              },
           },
-        },
-        callOptions: {
-          reactNative: {
-            textStreaming: true,
+          callOptions: {
+              reactNative: {
+              textStreaming: true,
+              },
           },
-        },
-        fetch,
-        blsVerify: () => true,
-        host: host,
-        verifyQuerySignatures: false,
-      });
+          blsVerify: () => true,
+          host: 'http://127.0.0.1:4943',
+          });
+          console.log("agent",agent)
+          let actor = Actor.createActor(idlFactory,{
+            agent,
+            blsVerify:()=>true,
+            canisterId:'bd3sg-teaaa-aaaaa-qaaba-cai'
+          });
+          console.log("actor",actor.whoami)
   
-        newActor = createActor(ids.backendCan, {
-          agent,
-        });
+          await actor.whoami().then((u)=>{
+              console.log(u)
+              setUser(u)
+              console.log('whoami', u);
+              return u
+          }).catch((err)=>{
+              console.log(err)
   
-        console.log("middleIdentityy",middleIdentity.getPrincipal().toString())
-  
-        let principal = await newActor?.whoami().catch(async(err)=>{
-          console.log(err)
-        })
-        console.log(`principal from del validation : ${principal}`)
-        if(principal=="2vxsx-fae"){
-          await AsyncStorage.clear()
-        }else{
-          btmSheetLoginRef.current.dismiss()
-        }
-        let actorUser=createUserActor(ids.userCan,{agent})
-        let actorHotel=createHotelActor(ids.hotelCan,{agent})
-        let actorBooking=createBookingActor(ids.bookingCan,{agent})
-        let actorToken=Actor.createActor(idlFactory, {
-          agent,
-          blsVerify:()=>true,
-          canisterId:ids.tokenCan
-        })
-        let actorReview=createReviewActor(ids.reviewCan,{agent})
-        let actorComment=createCommentActor(ids.commentCan,{agent})
-        store.dispatch(setActor({
-          backendActor:newActor,
-          userActor:actorUser,
-          hotelActor:actorHotel,
-          bookingActor:actorBooking,
-          tokenActor:actorToken,
-          reviewActor:actorReview,
-          commentActor:actorComment
-        })) 
-        
-        store.dispatch(setPrinciple(principal))
-        console.log("user",principal)
-      
-  
-        await actorUser?.getUserInfo().then((res)=>{
-          if(res[0]?.firstName!=null){
-            store.dispatch(setUser(res[0]))
-            btmSheetLoginRef.current.dismiss()
-            alert(`welcome back ${res[0]?.firstName}!`)
-            
-          }else{
-            alert('Now please follow the registeration process!')
-            btmSheetLoginRef.current.dismiss()
-            btmSheetFinishRef.current.present()
-          }
-        }).catch((err)=>console.error(err))
-        console.log("principal from new login : ",principal);
+          });
         
       }catch(err){
         console.log(err)
       }
+    }
+
+    export async function autoLogin(setUser){
+      let pub=getFromAsyncStore("pubkey")
+      let pri=getFromAsyncStore("prikey")
+      let del=getFromAsyncStore("delegation")
+      delegationValidation(pub,pri,del)
     }

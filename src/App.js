@@ -3,7 +3,8 @@ import React, { useContext, useEffect } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import { useRoute } from '@react-navigation/native'
 import { UserContext } from '../index'
-import RNRestart from 'react-native-restart/src'
+import { autoLogin } from './utils'
+import { idlFactory } from './declarations/backend'
 
 const App = () => {
 
@@ -14,17 +15,25 @@ const App = () => {
     SplashScreen.hide()
   },[])
 
+  const login=async()=>{
+    let idlFactories=[idlFactory]
+    let canisterIDs=["bd3sg-teaaa-aaaaa-qaaba-cai"]
+    let newLUser=await handleLogin(true,idlFactories,canisterIDs)
+    console.log(newLUser)
+    setUser(newLUser.principle)
+  }
+
 
   return (
     <View style={styles.app}>
       <Text style={styles.text}>React native login Test</Text>
       <Text style={styles.normalText}>Principal : {"\n\n"+user}</Text>
-      <TouchableOpacity style={styles.btn} onPress={()=>{handleLogin(setUser)}}>
+      <TouchableOpacity style={styles.btn} onPress={login}>
         <Text style={styles.btnText}>Login</Text>
       </TouchableOpacity>
-      {/* <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={()=>{RNRestart?.restart()}}>
-        <Text style={styles.btnText}>Logout</Text>
-      </TouchableOpacity> */}
+      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={async()=>{autoLogin(setUser)}}>
+        <Text style={styles.btnText}>Auto Login</Text>
+      </TouchableOpacity>
     </View>
   )
 }
