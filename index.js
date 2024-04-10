@@ -22,7 +22,8 @@ import {createActor,backend} from './src/declarations/backend';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import App from './src/App';
-import { handleLogin } from './src/utils';
+// import { handleLogin } from './src/utils';
+import { handleLogin } from 'react-native-icp-iid-auth';
 
 const Stack = createNativeStackNavigator();
 
