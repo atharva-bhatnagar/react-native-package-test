@@ -23,7 +23,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import App from './src/App';
 // import { handleLogin } from './src/utils';
-import { handleLogin } from 'react-native-icp-iid-auth';
+import { handleLogin, handleLogout } from './src/utils';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +44,7 @@ const RootComponent: React.FC = () => {
       <PolyfillCrypto />
       <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName='Launch'>
-          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin}}/>
+          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin,handleLogout}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </UserContext.Provider>
@@ -63,9 +63,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderWidth: 1,
-    // borderColor: COLORS.inputBorder,
+    //borderColor: COLORS.inputBorder, 
     borderRadius: 10,
     marginBottom: 10,
+
   },
   loginBtnText: {
     fontSize: 12,

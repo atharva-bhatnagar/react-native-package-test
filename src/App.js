@@ -6,10 +6,10 @@ import { UserContext } from '../index'
 import { autoLogin } from './utils'
 import { idlFactory } from './declarations/backend'
 
-const App = () => {
+const App = ({navigation}) => {
 
   const route=useRoute()
-  const {handleLogin}=route.params
+  const {handleLogin, handleLogout}=route.params
   const {user,setUser} =useContext(UserContext)
   useEffect(()=>{
     SplashScreen.hide()
@@ -17,10 +17,18 @@ const App = () => {
 
   const login=async()=>{
     let idlFactories=[idlFactory]
-    let canisterIDs=["bd3sg-teaaa-aaaaa-qaaba-cai"]
+    let canisterIDs=["c2lt4-zmaaa-aaaaa-qaaiq-cai"]
     let newLUser=await handleLogin(true,idlFactories,canisterIDs)
     console.log(newLUser)
     setUser(newLUser.principle)
+  }
+
+  // logout
+  const logout=async()=>{
+    const initialRoute = 'Launch';
+    let res=await handleLogout(navigation, initialRoute)
+    console.log(res)
+    setUser("Not logged in yet!")
   }
 
 
@@ -33,6 +41,9 @@ const App = () => {
       </TouchableOpacity>
       <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={async()=>{autoLogin(setUser)}}>
         <Text style={styles.btnText}>Auto Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={logout}>
+        <Text style={styles.btnText}>Logout</Text>
       </TouchableOpacity>
     </View>
   )
