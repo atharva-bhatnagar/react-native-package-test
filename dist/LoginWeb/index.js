@@ -19209,9 +19209,9 @@ __webpack_require__.r(__webpack_exports__);
  * process.env.CANISTER_ID_<CANISTER_NAME_UPPERCASE>
  * beginning in dfx 0.15.0
  */
-const canisterId =
-  "avqkn-guaaa-aaaaa-qaaea-cai" ||
-  0;
+const canisterId ="bd3sg-teaaa-aaaaa-qaaba-cai"
+  // process.env.CANISTER_ID_BACKEND ||
+  // process.env.BACKEND_CANISTER_ID;
 
 const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new _dfinity_agent__WEBPACK_IMPORTED_MODULE_0__.HttpAgent({ ...options.agentOptions });
@@ -19240,7 +19240,22 @@ const createActor = (canisterId, options = {}) => {
   });
 };
 
-const backend = createActor(canisterId);
+const backend = createActor(canisterId, {
+  agentOptions: {
+     fetchOptions: {
+        reactNative: {
+         __nativeResponseType: 'base64',
+        },
+     },
+     callOptions: {
+     reactNative: {
+        textStreaming: true,
+     },
+  },
+     blsVerify: () => true,
+     host: "http://127.0.0.1:4943",
+  },
+})
 
 
 /***/ }),
@@ -22801,47 +22816,38 @@ __webpack_require__.r(__webpack_exports__);
 
 let actor = _src_declarations_backend_index__WEBPACK_IMPORTED_MODULE_0__.backend;
 var url = new URL(window.location.href);
-let authClient;
+let authClient
+// One day in nanoseconds  
+const days = BigInt(1);  
+const hours = BigInt(24);  
+const nanoseconds = BigInt(3600000000000);
+const numDays=BigInt(5)// number of days delegation is valid for
+// Get the search parameters from the URL
 var params = new URLSearchParams(url.search);
 
 const loginButton = document.getElementById('login');
 loginButton.onclick = async e => {
   e.preventDefault();
+
+//   var middleKeyIdentity = await ECDSAKeyIdentity.generate({extractable: true});
   let publicKey = params.get('publicKey');
-  let appPublicKey = _dfinity_identity__WEBPACK_IMPORTED_MODULE_3__.Ed25519PublicKey.fromDer((0,_dfinity_agent__WEBPACK_IMPORTED_MODULE_2__.fromHex)(publicKey));
-  var middleKeyIdentity = await _dfinity_identity__WEBPACK_IMPORTED_MODULE_3__.ECDSAKeyIdentity.generate();
-  authClient = await _dfinity_auth_client__WEBPACK_IMPORTED_MODULE_1__.AuthClient.create({identity: middleKeyIdentity});
+  let newIdentity = new _dfinity_identity__WEBPACK_IMPORTED_MODULE_3__.ECDSAKeyIdentity(
+    {publicKey: (0,_dfinity_agent__WEBPACK_IMPORTED_MODULE_2__.fromHex)(publicKey)},
+    (0,_dfinity_agent__WEBPACK_IMPORTED_MODULE_2__.fromHex)(publicKey),
+    null,
+  );
+  authClient = await _dfinity_auth_client__WEBPACK_IMPORTED_MODULE_1__.AuthClient.create({identity: newIdentity});
   await new Promise(resolve => {
     authClient.login({
-      identityProvider:
-         false
-          ? 0
-          : `http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`,
+      identityProvider:  false
+                  ? 0
+                  : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943`,
+
+      maxTimeToLive: days * hours * nanoseconds * numDays, 
       onSuccess: resolve,
     });
   });
 
-  const middleIdentity = authClient.getIdentity();
-  let middleToApp = await _dfinity_identity__WEBPACK_IMPORTED_MODULE_3__.DelegationChain.create(
-    middleKeyIdentity,
-    appPublicKey,
-    new Date(Date.now() + 15 * 60 * 1000),
-    {previous: middleIdentity.getDelegation()},
-  );
-
-  let delegationChain = middleToApp;
-
-  var delegationString = JSON.stringify(delegationChain.toJSON());
-
-  const encodedDelegation = encodeURIComponent(delegationString);
-
-  var url = `rentspace://auth?delegation=${encodedDelegation}`;
-  window.open(url, '_self');
-
-  return false;
-};
-const redirectBtn = document.getElementById('open');
-redirectBtn.onclick = () => {
   const identity = authClient.getIdentity();
 
   var delegationString = JSON.stringify(identity.getDelegation().toJSON());
@@ -22850,9 +22856,21 @@ redirectBtn.onclick = () => {
 
   var url = `rentspace://auth?delegation=${encodedDelegation}`;
   window.open(url, '_self');
+
   return false;
 };
+const redirectBtn=document.getElementById('open')
+redirectBtn.onclick=()=>{
+  const identity = authClient.getIdentity();
 
+  var delegationString = JSON.stringify(identity.getDelegation().toJSON());
+
+  const encodedDelegation = encodeURIComponent(delegationString);
+
+  var url = `rentspace://auth?delegation=${encodedDelegation}`;
+  window.open(url, '_self');
+  return false
+}
 })();
 
 /******/ })()

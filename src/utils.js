@@ -5,10 +5,11 @@ import {
 } from '@dfinity/identity';
 import {Actor, HttpAgent, toHex, fromHex, blsVerify} from '@dfinity/agent';
 import {InAppBrowser} from 'react-native-inappbrowser-reborn';
-import { Linking } from 'react-native';
+import { Linking, NativeModules } from 'react-native';
 import { errors } from './types/errors';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CommonActions } from '@react-navigation/native'; 
+import { idlFactory } from './declarations/backend';
 
 global.Buffer = require('buffer').Buffer;
 
@@ -17,7 +18,7 @@ let generatedKeyPair
 
 export async function handleLogin(testing,idlFactories,canisterIDs){
 return new Promise(async(resolve,reject)=>{
-  let baseURL=testing?"http://127.0.0.1:4943/?canisterId=c5kvi-uuaaa-aaaaa-qaaia-cai&":"https://sldpd-dyaaa-aaaag-acifq-cai.icp0.io?"
+  let baseURL=testing?"http://127.0.0.1:4943/?canisterId=a3shf-5eaaa-aaaaa-qaafa-cai&":"https://sldpd-dyaaa-aaaag-acifq-cai.icp0.io?"
   let host=testing?"http://127.0.0.1:4943":"https://icp-api.io"
   await ECDSAKeyIdentity.generate({extractable: true}).then(async(keyp)=>{
 
@@ -113,8 +114,18 @@ async function handleDeepLink(event,idlFactories,canisterIDs){
       blsVerify: () => true,
       host: 'http://127.0.0.1:4943',
       });
-      // let pubKey = toHex(await crypto.subtle.exportKey("pkcs8",middleIdentity._inner._keyPair.publicKey));
-      // let priKey = toHex(await crypto.subtle.exportKey("pkcs8",middleIdentity._inner._keyPair.privateKey));
+      let pubKey = toHex(
+        await crypto.subtle.exportKey(
+          'raw',
+          middleIdentity._inner._keyPair.publicKey,
+        ),
+      );
+      let priKey = toHex(
+        await crypto.subtle.exportKey(
+          'pkcs8',
+          middleIdentity._inner._keyPair.privateKey,
+        ),
+      );
       console.log("agent",agent)
       let actor = Actor.createActor(idlFactories[0],{
         agent,
@@ -133,13 +144,14 @@ async function handleDeepLink(event,idlFactories,canisterIDs){
       }
 
       let principle=await actor.whoami()
+      storeInAsyncStorage("pubkey",pubKey)
+      storeInAsyncStorage("prikey",priKey)
+      storeInAsyncStorage("delegation",delegation)
       return {
         principle:principle,
         actors:[actor,...actorArr]
       }
-      // storeInAsyncStorage("pubkey",pubKey)
-      // storeInAsyncStorage("prikey",priKey)
-      // storeInAsyncStorage("delegation",delegation)
+
       // return("successful")
   }catch(err){
       console.log(err)
@@ -166,8 +178,12 @@ async function getFromAsyncStore(key){
   return data
 }
 
-async function delegationValidation(pubKey,priKey,delegation,setUser){
+export async function autoLogin(idlFactories,canisterIDs){
+  let pubKey=await getFromAsyncStore("pubkey")
+    let priKey=await getFromAsyncStore("prikey")
+    let delegation=await getFromAsyncStore("delegation")
   try{
+
     let publicKey = await crypto.subtle.importKey(
       "raw",
       Buffer.from(fromHex(pubKey)),
@@ -209,41 +225,36 @@ async function delegationValidation(pubKey,priKey,delegation,setUser){
         host: 'http://127.0.0.1:4943',
         });
         console.log("agent",agent)
-        let actor = Actor.createActor(idlFactory,{
+        let actor = Actor.createActor(idlFactories[0],{
           agent,
           blsVerify:()=>true,
-          canisterId:'bd3sg-teaaa-aaaaa-qaaba-cai'
+          canisterId:canisterIDs[0]
         });
         console.log("actor",actor.whoami)
-
-        await actor.whoami().then((u)=>{
-            console.log(u)
-            setUser(u)
-            console.log('whoami', u);
-            return u
-        }).catch((err)=>{
-            console.log(err)
-
-        });
+        let actorArr=[]
+        for(let i=1;i<idlFactories.length;i++){
+          let new_actor = Actor.createActor(idlFactories[i],{
+            agent,
+            blsVerify:()=>true,
+            canisterId:canisterIDs[i]
+          });
+          actorArr.push(new_actor)
+        }
+        let principle=await actor.whoami()
+        return {
+          principle:principle,
+          actors:[actor,...actorArr],
+          found:true
+        }
       
     }catch(err){
       console.log(err)
+      return {
+        msg:"NO previous valid user credentials found!",
+        found:false
+      }
     }
   }
-
-  export async function autoLogin(setUser){
-    let pub=getFromAsyncStore("pubkey")
-    let pri=getFromAsyncStore("prikey")
-    let del=getFromAsyncStore("delegation")
-    delegationValidation(pub,pri,del)
-  }
-
-
-
-
-
-
-
 
 // handling logout--
 
@@ -253,12 +264,13 @@ export async function handleLogout(navigation, initialRoute) {
       await AsyncStorage.clear();
   
 
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: initialRoute }], 
-        })
-      );
+      // navigation.dispatch(
+      //   CommonActions.reset({
+      //     index: 0,
+      //     routes: [{ name: initialRoute }], 
+      //   })
+      // );
+      NativeModules.DevSettings.reload()
       
       resolve('logout success');
     } catch (error) {

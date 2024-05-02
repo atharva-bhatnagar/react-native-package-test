@@ -11,13 +11,11 @@ const App = ({navigation}) => {
   const route=useRoute()
   const {handleLogin, handleLogout}=route.params
   const {user,setUser} =useContext(UserContext)
-  useEffect(()=>{
-    SplashScreen.hide()
-  },[])
+
 
   const login=async()=>{
     let idlFactories=[idlFactory]
-    let canisterIDs=["c2lt4-zmaaa-aaaaa-qaaiq-cai"]
+    let canisterIDs=["a4tbr-q4aaa-aaaaa-qaafq-cai"]
     let newLUser=await handleLogin(true,idlFactories,canisterIDs)
     console.log(newLUser)
     setUser(newLUser.principle)
@@ -30,6 +28,23 @@ const App = ({navigation}) => {
     console.log(res)
     setUser("Not logged in yet!")
   }
+  const automaticLogin=async()=>{
+    setUser("Fetching user details")
+    let idlFactories=[idlFactory]
+    let canisterIDs=["a4tbr-q4aaa-aaaaa-qaafq-cai"]
+    let res=await autoLogin(idlFactories,canisterIDs)
+    console.log(res)
+    if(res.found){
+      setUser(res.principle)
+    }else{
+      setUser("No previous user data found!")
+    }
+    
+  }
+  useEffect(()=>{
+    SplashScreen.hide()
+    automaticLogin()
+  },[])
 
 
   return (
@@ -39,7 +54,7 @@ const App = ({navigation}) => {
       <TouchableOpacity style={styles.btn} onPress={login}>
         <Text style={styles.btnText}>Login</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={async()=>{autoLogin(setUser)}}>
+      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={automaticLogin}>
         <Text style={styles.btnText}>Auto Login</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={logout}>
