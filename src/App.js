@@ -10,32 +10,46 @@ const App = ({navigation}) => {
 
   const route=useRoute()
   const {handleLogin, handleLogout}=route.params
-  const {user,setUser} =useContext(UserContext)
+  const {user,setUser,isAuthenticated,setIsAuthenticated} =useContext(UserContext)
 
 
   const login=async()=>{
-    let idlFactories=[idlFactory]
-    let canisterIDs=["a4tbr-q4aaa-aaaaa-qaafq-cai"]
-    let newLUser=await handleLogin(true,idlFactories,canisterIDs)
+    const canisters=[
+      {
+        idlFactory:idlFactory,
+        id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
+      }
+    ]
+    let newLUser=await handleLogin(true,canisters,'example')
     console.log(newLUser)
-    setUser(newLUser.principle)
+    if(newLUser.principle){
+      setUser(newLUser.principle)
+      setIsAuthenticated(true)
+    }
+    
   }
 
   // logout
   const logout=async()=>{
     const initialRoute = 'Launch';
-    let res=await handleLogout(navigation, initialRoute)
+    let res=await handleLogout()
     console.log(res)
     setUser("Not logged in yet!")
+    setIsAuthenticated(false)
   }
   const automaticLogin=async()=>{
     setUser("Fetching user details")
-    let idlFactories=[idlFactory]
-    let canisterIDs=["a4tbr-q4aaa-aaaaa-qaafq-cai"]
-    let res=await autoLogin(idlFactories,canisterIDs)
+    const canisters=[
+      {
+        idlFactory:idlFactory,
+        id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
+      }
+    ]
+    let res=await autoLogin(canisters,true)
     console.log(res)
     if(res.found){
       setUser(res.principle)
+      setIsAuthenticated(true)
     }else{
       setUser("No previous user data found!")
     }
@@ -49,17 +63,20 @@ const App = ({navigation}) => {
 
   return (
     <View style={styles.app}>
-      <Text style={styles.text}>React native login Test</Text>
+      <Text style={styles.text}>RN IID test auth</Text>
       <Text style={styles.normalText}>Principal : {"\n\n"+user}</Text>
-      <TouchableOpacity style={styles.btn} onPress={login}>
-        <Text style={styles.btnText}>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={automaticLogin}>
-        <Text style={styles.btnText}>Auto Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={logout}>
+      {
+        isAuthenticated?
+        <TouchableOpacity style={[styles.btn,{marginTop:20}]} onPress={logout}>
         <Text style={styles.btnText}>Logout</Text>
       </TouchableOpacity>
+        :
+        <TouchableOpacity style={styles.btn} onPress={login}>
+        <Text style={styles.btnText}>Login</Text>
+      </TouchableOpacity>
+      }
+      
+      
     </View>
   )
 }
@@ -84,8 +101,8 @@ const styles = StyleSheet.create({
         flexDirection:'column',
         justifyContent:'center',
         alignItems:'center',
-        borderRadius:40,
-        width:'25%'
+        borderRadius:10,
+        width:'30%'
     },
     btnText:{
         color:'white',

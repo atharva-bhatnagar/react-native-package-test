@@ -11,6 +11,7 @@ import {
 let actor = backend;
 var url = new URL(window.location.href);
 let authClient
+let appName
 // One day in nanoseconds  
 const days = BigInt(1);  
 const hours = BigInt(24);  
@@ -25,6 +26,7 @@ loginButton.onclick = async e => {
 
 //   var middleKeyIdentity = await ECDSAKeyIdentity.generate({extractable: true});
   let publicKey = params.get('publicKey');
+  appName =params.get('appName')
   let newIdentity = new ECDSAKeyIdentity(
     {publicKey: fromHex(publicKey)},
     fromHex(publicKey),
@@ -42,14 +44,8 @@ loginButton.onclick = async e => {
     });
   });
 
-  const identity = authClient.getIdentity();
-
-  var delegationString = JSON.stringify(identity.getDelegation().toJSON());
-
-  const encodedDelegation = encodeURIComponent(delegationString);
-
-  var url = `rentspace://auth?delegation=${encodedDelegation}`;
-  window.open(url, '_self');
+  document.getElementById("login").className='hide'
+  document.getElementById("open").className="show"
 
   return false;
 };
@@ -61,7 +57,7 @@ redirectBtn.onclick=()=>{
 
   const encodedDelegation = encodeURIComponent(delegationString);
 
-  var url = `rentspace://auth?delegation=${encodedDelegation}`;
+  var url = `${appName}://auth?delegation=${encodedDelegation}`;
   window.open(url, '_self');
   return false
 }

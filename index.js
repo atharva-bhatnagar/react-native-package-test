@@ -27,7 +27,7 @@ import { handleLogin, handleLogout } from './src/utils';
 const Stack = createNativeStackNavigator();
 
 const linking = {
-  prefixes: ['rentspace://'],
+  prefixes: ['example://'],
 };
 export const UserContext=createContext(null)
 
@@ -35,11 +35,12 @@ const RootComponent: React.FC = () => {
 
   
   const [user,setUser]=useState("Not logged in yet!")
+  const [isAuthenticated,setIsAuthenticated]=useState(false)
 
   let generatedKeyPair;
 
   return (
-    <UserContext.Provider value={{user,setUser}}>
+    <UserContext.Provider value={{user,setUser,isAuthenticated,setIsAuthenticated}}>
       <PolyfillCrypto />
       <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName='Launch'>

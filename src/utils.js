@@ -14,12 +14,12 @@ import { idlFactory } from './declarations/backend';
 global.Buffer = require('buffer').Buffer;
 
 let generatedKeyPair
+const BACKEND_CANISTER_ID_MAINNET="nkjmk-rqaaa-aaaao-a3mvq-cai"
 
 
-export async function handleLogin(testing,idlFactories,canisterIDs){
+export async function handleLogin(testing,canisters,appName){
 return new Promise(async(resolve,reject)=>{
-  let baseURL=testing?"http://127.0.0.1:4943/?canisterId=a3shf-5eaaa-aaaaa-qaafa-cai&":"https://sldpd-dyaaa-aaaag-acifq-cai.icp0.io?"
-  let host=testing?"http://127.0.0.1:4943":"https://icp-api.io"
+  let baseURL=testing?"http://127.0.0.1:4943/?canisterId=a3shf-5eaaa-aaaaa-qaafa-cai&":"https://nnik6-4iaaa-aaaao-a3mva-cai.icp0.io?"
   await ECDSAKeyIdentity.generate({extractable: true}).then(async(keyp)=>{
 
   generatedKeyPair=keyp
@@ -27,7 +27,7 @@ return new Promise(async(resolve,reject)=>{
   try {
     const url = `${baseURL}publicKey=${toHex(
       keyp.getPublicKey().toDer(),
-    )}`;
+    )}&appName=${appName}`;
     if (await InAppBrowser.isAvailable()) {
       const result = await InAppBrowser.open(url, {
         // iOS Properties
@@ -61,7 +61,7 @@ return new Promise(async(resolve,reject)=>{
       });
       Linking.addEventListener('url', async(event)=>{
         try{
-          let newRes=await handleDeepLink(event,idlFactories,canisterIDs)
+          let newRes=await handleDeepLink(event,canisters,testing)
           resolve(newRes)
         }catch(err){
           reject(err)
@@ -82,7 +82,7 @@ return new Promise(async(resolve,reject)=>{
   
 };
 
-async function handleDeepLink(event,idlFactories,canisterIDs){
+async function handleDeepLink(event,canisters,testing){
   try{
       const deepLink = event.url;
       const urlObject = new URL(deepLink);
@@ -112,7 +112,7 @@ async function handleDeepLink(event,idlFactories,canisterIDs){
           },
       },
       blsVerify: () => true,
-      host: 'http://127.0.0.1:4943',
+      host: testing?'http://127.0.0.1:4943':'https://icp-api.io',
       });
       let pubKey = toHex(
         await crypto.subtle.exportKey(
@@ -127,18 +127,27 @@ async function handleDeepLink(event,idlFactories,canisterIDs){
         ),
       );
       console.log("agent",agent)
-      let actor = Actor.createActor(idlFactories[0],{
-        agent,
-        blsVerify:()=>true,
-        canisterId:canisterIDs[0]
-      });
-      console.log("actor",actor.whoami)
-      let actorArr=[]
-      for(let i=1;i<idlFactories.length;i++){
-        let new_actor = Actor.createActor(idlFactories[i],{
+      let actor
+      
+      if(testing){
+        actor = Actor.createActor(canisters[0].idlFactory,{
           agent,
           blsVerify:()=>true,
-          canisterId:canisterIDs[i]
+          canisterId:canisters[0].id
+        });
+      }else{
+        actor = Actor.createActor(idlFactory,{
+          agent,
+          blsVerify:()=>true,
+          canisterId:BACKEND_CANISTER_ID_MAINNET
+        });
+      }
+      let actorArr=[]
+      for(let i=0;i<canisters.length;i++){
+        let new_actor = Actor.createActor(canisters[i].idlFactory,{
+          agent,
+          blsVerify:()=>true,
+          canisterId:canisters[i].id
         });
         actorArr.push(new_actor)
       }
@@ -149,7 +158,7 @@ async function handleDeepLink(event,idlFactories,canisterIDs){
       storeInAsyncStorage("delegation",delegation)
       return {
         principle:principle,
-        actors:[actor,...actorArr]
+        actors:[...actorArr]
       }
 
       // return("successful")
@@ -178,7 +187,7 @@ async function getFromAsyncStore(key){
   return data
 }
 
-export async function autoLogin(idlFactories,canisterIDs){
+export async function autoLogin(canisters,testing){
   let pubKey=await getFromAsyncStore("pubkey")
     let priKey=await getFromAsyncStore("prikey")
     let delegation=await getFromAsyncStore("delegation")
@@ -222,28 +231,37 @@ export async function autoLogin(idlFactories,canisterIDs){
             },
         },
         blsVerify: () => true,
-        host: 'http://127.0.0.1:4943',
+        host: testing?'http://127.0.0.1:4943':'https://icp-api.io',
         });
         console.log("agent",agent)
-        let actor = Actor.createActor(idlFactories[0],{
-          agent,
-          blsVerify:()=>true,
-          canisterId:canisterIDs[0]
-        });
-        console.log("actor",actor.whoami)
-        let actorArr=[]
-        for(let i=1;i<idlFactories.length;i++){
-          let new_actor = Actor.createActor(idlFactories[i],{
+        let actor
+        if(testing){
+          actor = Actor.createActor(canisters[0].idlFactory,{
             agent,
             blsVerify:()=>true,
-            canisterId:canisterIDs[i]
+            canisterId:canisters[0].id
+          });
+        }else{
+          actor = Actor.createActor(idlFactory,{
+            agent,
+            blsVerify:()=>true,
+            canisterId:BACKEND_CANISTER_ID_MAINNET
+          });
+        }
+        console.log("actor",actor.whoami)
+        let actorArr=[]
+        for(let i=0;i<canisters.length;i++){
+          let new_actor = Actor.createActor(canisters[i].idlFactory,{
+            agent,
+            blsVerify:()=>true,
+            canisterId:canisters[i].id
           });
           actorArr.push(new_actor)
         }
         let principle=await actor.whoami()
         return {
           principle:principle,
-          actors:[actor,...actorArr],
+          actors:[...actorArr],
           found:true
         }
       
@@ -258,7 +276,7 @@ export async function autoLogin(idlFactories,canisterIDs){
 
 // handling logout--
 
-export async function handleLogout(navigation, initialRoute) {
+export async function handleLogout() {
   return new Promise(async(resolve, reject) => {
     try {
       await AsyncStorage.clear();
