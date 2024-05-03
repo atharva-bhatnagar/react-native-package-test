@@ -22,7 +22,7 @@ import {createActor,backend} from './src/declarations/backend';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import App from './src/App';
-import { handleLogin, handleLogout } from './src/utils';
+import { handleLogin,handleLogout,autoLogin } from 'react-native-icp-iid-auth'
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +44,7 @@ const RootComponent: React.FC = () => {
       <PolyfillCrypto />
       <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName='Launch'>
-          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin,handleLogout}}/>
+          <Stack.Screen options={{headerShown:false}} name='Launch' component={App} initialParams={{handleLogin,handleLogout,autoLogin}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </UserContext.Provider>

@@ -17,9 +17,9 @@ let generatedKeyPair
 const BACKEND_CANISTER_ID_MAINNET="nkjmk-rqaaa-aaaao-a3mvq-cai"
 
 
-export async function handleLogin(testing,canisters,appName){
+export async function handleLogin(environment,canisters,appName){
 return new Promise(async(resolve,reject)=>{
-  let baseURL=testing?"http://127.0.0.1:4943/?canisterId=a3shf-5eaaa-aaaaa-qaafa-cai&":"https://nnik6-4iaaa-aaaao-a3mva-cai.icp0.io?"
+  let baseURL=environment.isTesting?`http://127.0.0.1:4943/?canisterId=${environment.middlepageID}&`:"https://nnik6-4iaaa-aaaao-a3mva-cai.icp0.io?"
   await ECDSAKeyIdentity.generate({extractable: true}).then(async(keyp)=>{
 
   generatedKeyPair=keyp
@@ -61,7 +61,7 @@ return new Promise(async(resolve,reject)=>{
       });
       Linking.addEventListener('url', async(event)=>{
         try{
-          let newRes=await handleDeepLink(event,canisters,testing)
+          let newRes=await handleDeepLink(event,canisters,environment)
           resolve(newRes)
         }catch(err){
           reject(err)
@@ -82,7 +82,7 @@ return new Promise(async(resolve,reject)=>{
   
 };
 
-async function handleDeepLink(event,canisters,testing){
+async function handleDeepLink(event,canisters,environment){
   try{
       const deepLink = event.url;
       const urlObject = new URL(deepLink);
@@ -112,7 +112,7 @@ async function handleDeepLink(event,canisters,testing){
           },
       },
       blsVerify: () => true,
-      host: testing?'http://127.0.0.1:4943':'https://icp-api.io',
+      host: environment.isTesting?'http://127.0.0.1:4943':'https://icp-api.io',
       });
       let pubKey = toHex(
         await crypto.subtle.exportKey(
@@ -129,11 +129,11 @@ async function handleDeepLink(event,canisters,testing){
       console.log("agent",agent)
       let actor
       
-      if(testing){
-        actor = Actor.createActor(canisters[0].idlFactory,{
+      if(environment.isTesting){
+        actor = Actor.createActor(environment.backendIDL,{
           agent,
           blsVerify:()=>true,
-          canisterId:canisters[0].id
+          canisterId:environment.backendID
         });
       }else{
         actor = Actor.createActor(idlFactory,{
@@ -187,7 +187,7 @@ async function getFromAsyncStore(key){
   return data
 }
 
-export async function autoLogin(canisters,testing){
+export async function autoLogin(environment,canisters){
   let pubKey=await getFromAsyncStore("pubkey")
     let priKey=await getFromAsyncStore("prikey")
     let delegation=await getFromAsyncStore("delegation")
@@ -231,15 +231,15 @@ export async function autoLogin(canisters,testing){
             },
         },
         blsVerify: () => true,
-        host: testing?'http://127.0.0.1:4943':'https://icp-api.io',
+        host: environment.isTesting?'http://127.0.0.1:4943':'https://icp-api.io',
         });
         console.log("agent",agent)
         let actor
-        if(testing){
-          actor = Actor.createActor(canisters[0].idlFactory,{
+        if(environment.isTesting){
+          actor = Actor.createActor(environment.backendIDL,{
             agent,
             blsVerify:()=>true,
-            canisterId:canisters[0].id
+            canisterId:environment.backendID
           });
         }else{
           actor = Actor.createActor(idlFactory,{

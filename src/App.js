@@ -3,24 +3,30 @@ import React, { useContext, useEffect } from 'react'
 import SplashScreen from 'react-native-splash-screen'
 import { useRoute } from '@react-navigation/native'
 import { UserContext } from '../index'
-import { autoLogin } from './utils'
 import { idlFactory } from './declarations/backend'
 
 const App = ({navigation}) => {
 
   const route=useRoute()
-  const {handleLogin, handleLogout}=route.params
+  const {handleLogin, handleLogout,autoLogin}=route.params
   const {user,setUser,isAuthenticated,setIsAuthenticated} =useContext(UserContext)
+  const canisters=[
+    {
+      idlFactory:idlFactory,
+      id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
+    }
+  ]
+  const environment={
+    isTesting:false,
+    middlepageID:"a3shf-5eaaa-aaaaa-qaafa-cai",
+    backendID:"a4tbr-q4aaa-aaaaa-qaafq-cai",
+    backendIDL:idlFactory
+  }
 
 
   const login=async()=>{
-    const canisters=[
-      {
-        idlFactory:idlFactory,
-        id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
-      }
-    ]
-    let newLUser=await handleLogin(true,canisters,'example')
+    
+    let newLUser=await handleLogin(environment,canisters,'example')
     console.log(newLUser)
     if(newLUser.principle){
       setUser(newLUser.principle)
@@ -39,13 +45,7 @@ const App = ({navigation}) => {
   }
   const automaticLogin=async()=>{
     setUser("Fetching user details")
-    const canisters=[
-      {
-        idlFactory:idlFactory,
-        id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
-      }
-    ]
-    let res=await autoLogin(canisters,true)
+    let res=await autoLogin(environment,canisters)
     console.log(res)
     if(res.found){
       setUser(res.principle)

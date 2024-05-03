@@ -9,7 +9,7 @@ export { idlFactory } from "./backend.did.js";
  * process.env.CANISTER_ID_<CANISTER_NAME_UPPERCASE>
  * beginning in dfx 0.15.0
  */
-export const canisterId ="bd3sg-teaaa-aaaaa-qaaba-cai"
+// export const canisterId ="bd3sg-teaaa-aaaaa-qaaba-cai"
   // process.env.CANISTER_ID_BACKEND ||
   // process.env.BACKEND_CANISTER_ID;
 
@@ -40,19 +40,19 @@ export const createActor = (canisterId, options = {}) => {
   });
 };
 
-export const backend = createActor(canisterId, {
-  agentOptions: {
-     fetchOptions: {
-        reactNative: {
-         __nativeResponseType: 'base64',
-        },
-     },
-     callOptions: {
-     reactNative: {
-        textStreaming: true,
-     },
-  },
-     blsVerify: () => true,
-     host: "http://127.0.0.1:4943",
-  },
-})
+// export const backend = createActor(canisterId, {
+//   agentOptions: {
+//      fetchOptions: {
+//         reactNative: {
+//          __nativeResponseType: 'base64',
+//         },
+//      },
+//      callOptions: {
+//      reactNative: {
+//         textStreaming: true,
+//      },
+//   },
+//      blsVerify: () => true,
+//      host: "http://127.0.0.1:4943",
+//   },
+// })
