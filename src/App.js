@@ -28,8 +28,8 @@ const App = ({navigation}) => {
     
     let newLUser=await handleLogin(environment,canisters,'example')
     console.log(newLUser)
-    if(newLUser.principle){
-      setUser(newLUser.principle)
+    if(newLUser.principal){
+      setUser(newLUser.principal)
       setIsAuthenticated(true)
     }
     
@@ -48,7 +48,7 @@ const App = ({navigation}) => {
     let res=await autoLogin(environment,canisters)
     console.log(res)
     if(res.found){
-      setUser(res.principle)
+      setUser(res.principal)
       setIsAuthenticated(true)
     }else{
       setUser("No previous user data found!")
