@@ -8,21 +8,11 @@ import {AppRegistry, useColorScheme} from 'react-native';
 import {name as appName} from './app.json';
 import React, { createContext, useContext, useState } from 'react';
 import PolyfillCrypto from 'react-native-webview-crypto';
-import {
-  DelegationIdentity,
-  Ed25519PublicKey,
-  ECDSAKeyIdentity,
-  DelegationChain,
-  Ed25519KeyIdentity,
-} from '@dfinity/identity';
-import {Actor, HttpAgent, toHex, fromHex} from '@dfinity/agent';
-import {InAppBrowser} from 'react-native-inappbrowser-reborn';
 import {StyleSheet, TouchableOpacity, Linking} from 'react-native';
-import {createActor,backend} from './src/declarations/backend';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import App from './src/App';
-import { handleLogin,handleLogout,autoLogin } from 'react-native-icp-iid-auth'
+import { handleLogin,handleLogout,autoLogin } from 'react-native-icp-auth'
 
 const Stack = createNativeStackNavigator();
 

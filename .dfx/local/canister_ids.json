@@ -1,11 +1,8 @@
 {
   "LoginWeb": {
-    "local": "a3shf-5eaaa-aaaaa-qaafa-cai"
-  },
-  "__Candid_UI": {
     "local": "ajuq4-ruaaa-aaaaa-qaaga-cai"
   },
-  "backend": {
-    "local": "a4tbr-q4aaa-aaaaa-qaafq-cai"
+  "__Candid_UI": {
+    "local": "aovwi-4maaa-aaaaa-qaagq-cai"
   }
 }

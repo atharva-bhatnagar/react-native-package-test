@@ -16,11 +16,20 @@ const App = ({navigation}) => {
       id:"a4tbr-q4aaa-aaaaa-qaafq-cai"
     }
   ]
+
+  //environment for local testing, please replace the canister IDs and idlfactory
+
+  // const environment={
+  //   isTesting:true,
+  //   middlepageID:"a3shf-5eaaa-aaaaa-qaafa-cai",
+  //   backendID:"a4tbr-q4aaa-aaaaa-qaafq-cai",
+  //   backendIDL:idlFactory
+  // }
+
+  // environment for mainnet
+
   const environment={
-    isTesting:false,
-    middlepageID:"a3shf-5eaaa-aaaaa-qaafa-cai",
-    backendID:"a4tbr-q4aaa-aaaaa-qaafq-cai",
-    backendIDL:idlFactory
+    isTesting:false
   }
 
 
@@ -63,7 +72,7 @@ const App = ({navigation}) => {
 
   return (
     <View style={styles.app}>
-      <Text style={styles.text}>RN IID test auth</Text>
+      <Text style={styles.text}>Internet Identity test auth</Text>
       <Text style={styles.normalText}>Principal : {"\n\n"+user}</Text>
       {
         isAuthenticated?
